@@ -8,7 +8,7 @@ public class Main {
 
   private static ArrayList<Integer> refSequence = new ArrayList<Integer>();
 
-  public static void fifo(int numFrames){
+  public static void fifo(int numFrames) {
     int pageMiss = 0;
     int i = 0;
     ArrayList<Integer> frames = new ArrayList<Integer>(); //quadros disponiveis na memoria
@@ -19,14 +19,14 @@ public class Main {
         frames.set(i, ref);        // Adiciona o elemento no indice correto
         i = (i+1) % frames.size(); // Atualiza Circular
         pageMiss++;                // Atualiza contador de falta de paginas
-        System.out.println(ref+" -> "+frames);
+        //System.out.println(ref+" -> "+frames);
       }
     }
 
     System.out.println("FIFO " + pageMiss);
   }
 
-  public static void otm(int numFrames){
+  public static void otm(int numFrames) {
     int pageMiss = 0;
     int i = 0;
     int firstRefCount = numFrames;
@@ -40,14 +40,14 @@ public class Main {
       if (!frames.contains(ref)) { // Falta de pagina!!
         pageMiss++;
 
-        if (firstRefCount != 0){   // Primeira referencia
+        if (firstRefCount != 0) {   // Primeira referencia
           frames.set(i, ref);
           firstRefCount--;
         }
         else { // Verifica qual quadro vitima
           target = 0;
           distance = new int[numFrames];
-          for (Integer f : frames){
+          for (Integer f : frames) {
             for (int k = i; k < refSequence.size(); k++) {
               if (refSequence.get(k) == f){
                 break;
@@ -66,7 +66,7 @@ public class Main {
             }
           }
           frames.set(index, ref);
-          System.out.println(ref+" -> "+frames);
+          //System.out.println(ref+" -> "+frames);
         }
       }
       i++;
@@ -74,17 +74,56 @@ public class Main {
     System.out.println("OTM " + pageMiss);
   }
 
-  public static void lru(){}
+  public static void lru(int numFrames){
+    int pageMiss = 0;
+    int i = 0;
+    int firstRefCount = numFrames;
+    int systemTime[] = new int[numFrames];
+    int countTime = 0;
+    ArrayList<Integer> frames = new ArrayList<Integer>();
+    for (int j = 0; j < numFrames; j++) {frames.add(-1);}
+
+    for (Integer ref : refSequence) {
+
+      if (!frames.contains(ref)) { // Falta de pagina!!
+        pageMiss++;
+        if (i < numFrames) {
+          frames.set(i, ref);
+          systemTime[i] = i;
+        }
+        else {
+          //Busca o menor indice do contador
+          int less = Integer.MAX_VALUE;
+          int index = 0;
+          for (int k = 0; k < numFrames; k++) {
+            if (systemTime[k] < less) {
+              less = systemTime[k];
+              index = k;
+            }
+          }
+          systemTime[index] = i;
+          frames.set(index, ref);
+        }
+        //System.out.println(ref+" -> "+frames);
+      }
+      else { //nao ocorreu falta de pagina
+        //busca indice da referencia e atualiza contador de ref
+        for (int k = 0; k < numFrames; k++) {
+          if (frames.get(k) == ref){
+            systemTime[k] = i;
+            break;
+          }
+        }
+      }
+      i++;
+    }
+    System.out.println("LRU " + pageMiss);
+  }
 
   public static void main(String[] args) {
-    /* Padrao de entrada
-          numFrames
-          ...
-          references
-          ...
-     */
+
      try {
-       String filePath = "in.txt";
+       String filePath = "../assets/in.txt";
        String line = "";
 
        BufferedReader readFile =
@@ -96,10 +135,9 @@ public class Main {
          refSequence.add(Integer.parseInt(line));
        }
 
-      //  System.out.println(refSequence);
       fifo(numFrames);
       otm(numFrames);
-      lru();
+      lru(numFrames);
 
      }
      catch (Exception e) {
